@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth2 Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+        }
+        .login-container {
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 300px;
+            width: 100%;
+        }
+        .login-container h1 {
+            margin-bottom: 1.5rem;
+        }
+        .oauth-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            margin-top: 1rem;
+            font-size: 1rem;
+            color: white;
+            background-color: #4285f4;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .oauth-button:hover {
+            background-color: #357ae8;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Login</h1>
+        <p>Sign in using your preferred provider:</p>
+        <a id="oauth-login" class="oauth-button" href="#">Login with Google</a>
+    </div>
+
+    <script>
+        // Replace these with your actual OAuth2 client configuration
+        const clientId = '582519769100-9r997ivr21ig2glno7j27po02fa8fn4n.apps.googleusercontent.com';
+        const redirectUri = 'http://localhost:3000/callback.html';
+        const oauthEndpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
+
+        document.getElementById('oauth-login').addEventListener('click', (e) => {
+            e.preventDefault();
+
+            const authUrl = `${oauthEndpoint}?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile&include_granted_scopes=true`;
+
+            // Rediriger vers Google
+            window.location.href = authUrl;
+        });
+    </script>
+</body>
+</html>

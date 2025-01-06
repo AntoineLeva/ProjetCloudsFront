@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Callback</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 20vh;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome!</h1>
+    <p id="user-info">Fetching your information...</p>
+
+    <script>
+        // Récupérer le hash de l'URL
+        const hash = window.location.hash;
+        const params = new URLSearchParams(hash.substring(1)); // Retire le '#' du début
+
+        const accessToken = params.get('access_token');
+
+        if (accessToken) {
+            // Utiliser l'API Google pour récupérer les infos utilisateur
+            fetch('https://www.googleapis.com/oauth2/v1/userinfo?access_token=' + accessToken, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Afficher les informations utilisateur
+                document.getElementById('user-info').innerHTML = `
+                    <p>Hello, <strong>${data.name}</strong>!</p>
+                    <p>Your email: ${data.email}</p>
+                    <img src="${data.picture}" alt="Profile Picture" width="100" />
+                `;
+            })
+            .catch(err => {
+                document.getElementById('user-info').innerText = 'Error fetching user info.';
+                console.error(err);
+            });
+        } else {
+            document.getElementById('user-info').innerText = 'No access token found.';
+        }
+    </script>
+</body>
+</html>
