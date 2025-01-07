@@ -3,67 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
     <title>OAuth2 Login</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: #f5f5f5;
-        }
-        .login-container {
-            text-align: center;
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 300px;
-            width: 100%;
-        }
-        .login-container h1 {
-            margin-bottom: 1.5rem;
-        }
-        .oauth-button {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            margin-top: 1rem;
-            font-size: 1rem;
-            color: white;
-            background-color: #4285f4;
-            border: none;
-            border-radius: 4px;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .oauth-button:hover {
-            background-color: #357ae8;
-        }
-    </style>
 </head>
+
 <body>
     <div class="login-container">
-        <h1>Login</h1>
-        <p>Sign in using your preferred provider:</p>
-        <a id="oauth-login" class="oauth-button" href="#">Login with Google</a>
+        <h1>Connexion</h1>
+        <p>Veuillez vous connecter :</p>
+        <a id="oauth-login" class="oauth-button" href="#">Connexion avec Google</a>
     </div>
 
     <script>
-        // Replace these with your actual OAuth2 client configuration
-        const clientId = '582519769100-9r997ivr21ig2glno7j27po02fa8fn4n.apps.googleusercontent.com';
-        const redirectUri = 'http://localhost:3000/callback.html';
+        const clientId = '394694678967-cdv2lql3p1nlh815btkb4tl3inf4iv48.apps.googleusercontent.com';
+        const redirectUri = 'http://localhost:5500/ProjetCloudsFront/callback.html';//'http://localhost:8080/callback.html'; // Ton URI de redirection
         const oauthEndpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
 
+        // Rediriger vers l'URL d'autorisation OAuth2
         document.getElementById('oauth-login').addEventListener('click', (e) => {
             e.preventDefault();
-
             const authUrl = `${oauthEndpoint}?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile&include_granted_scopes=true`;
-
-            // Rediriger vers Google
             window.location.href = authUrl;
         });
+
+        // Récupérer le token de l'URL après redirection
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const token = hashParams.get('access_token');
+
+        if (token) {
+            // Stocker le token pour une utilisation future
+            sessionStorage.setItem('access_token', token);
+
+            // Récupérer les informations de l'utilisateur depuis l'API Google
+            fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('User Info:', data);
+
+                // Afficher les informations utilisateur
+                document.querySelector('.login-container').innerHTML = `
+                    <h1>Bienvenue, ${data.name}</h1>
+                    <p>Email : ${data.email}</p>
+                    <button id="logout-button" class="btn">Se déconnecter</button>
+                `;
+
+                // Ajouter un bouton de déconnexion
+                document.getElementById('logout-button').addEventListener('click', () => {
+                    sessionStorage.removeItem('access_token');
+                    window.location.href = '/';
+                });
+            })
+            .catch(error => {
+                console.error('Erreur lors de la récupération des informations utilisateur :', error);
+                alert('Impossible de récupérer vos informations. Veuillez vous reconnecter.');
+            });
+        } else {
+            console.log('Pas de token trouvé dans l’URL.');
+        }
     </script>
 </body>
 </html>
