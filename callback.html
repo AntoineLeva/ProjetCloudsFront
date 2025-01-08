@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Callback</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 20vh;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <title>Pipeline</title>
 </head>
 <body>
-    <h1>Welcome!</h1>
-    <p id="user-info">Fetching your information...</p>
+    <header>
+        <div class="user-info">
+            <div id="user-details"></div>
+        </div>
+        <button class="logout-btn" id="logout-btn">Déconnexion</button>
+    </header>
+    <main>
+        <h1>Suivi des Pipelines</h1>
+        <ul id="pipeline-list">Chargement des pipelines...</ul>
+    </main>
 
     <script>
         // Récupérer le hash de l'URL
@@ -24,6 +26,9 @@
         const accessToken = params.get('access_token');
 
         if (accessToken) {
+            // Stocker le token dans sessionStorage
+            sessionStorage.setItem('access_token', accessToken);
+
             // Utiliser l'API Google pour récupérer les infos utilisateur
             fetch('https://www.googleapis.com/oauth2/v1/userinfo?access_token=' + accessToken, {
                 method: 'GET',
@@ -33,19 +38,63 @@
             })
             .then(response => response.json())
             .then(data => {
-                // Afficher les informations utilisateur
-                document.getElementById('user-info').innerHTML = `
-                    <p>Hello, <strong>${data.name}</strong>!</p>
-                    <p>Your email: ${data.email}</p>
-                    <img src="${data.picture}" alt="Profile Picture" width="100" />
+                // Afficher les informations utilisateur dans le header
+                const userDetails = `
+                    <div>
+                        <p><strong>${data.name}</strong><br>${data.email}</p>
+                    </div>
+                    <img src="${data.picture}" alt="Profile Picture" />
                 `;
+                document.getElementById('user-details').innerHTML = userDetails;
             })
             .catch(err => {
-                document.getElementById('user-info').innerText = 'Error fetching user info.';
-                console.error(err);
+                console.error('Erreur récuperation info utilisateur:', err);
+            });
+
+// Rendre quelque chose avec ce format 
+// const pipelines = [
+//     { name: "Pipeline A", status: "Running" },
+//     { name: "Pipeline B", status: "Failed" },
+//     { name: "Pipeline C", status: "Completed" }
+// ];
+// const pipelineList = document.getElementById('pipeline-list');
+// pipelines.forEach(pipeline => {
+//     const li = document.createElement('li');
+//     li.textContent = `Pipeline: ${pipeline.name}, Status: ${pipeline.status}`;
+//     pipelineList.appendChild(li);
+// });
+
+
+            // Charger les pipelines            
+            fetch('http://localhost:3000/api/pipelines', {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(pipelines => {
+                const pipelineList = document.getElementById('pipeline-list');
+                pipelineList.innerHTML = ''; // Clear loading message
+                pipelines.forEach(pipeline => {
+                    const li = document.createElement('li');
+                    li.textContent = `Pipeline: ${pipeline.name}, Status: ${pipeline.status}`;
+                    pipelineList.appendChild(li);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching pipelines:', error);
+                document.getElementById('pipeline-list').innerText = 'Erreur lors de la récupération des pipelines.';
+            });
+
+            // Gestion de la déconnexion
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                sessionStorage.removeItem('access_token'); // Supprimer le token
+                window.location.href = '/index.html'; // Rediriger vers la page de connexion
             });
         } else {
-            document.getElementById('user-info').innerText = 'No access token found.';
+            alert('Token non trouvé. Veuillez vous reconnecter.');
+            window.location.href = '/index.html'; // Rediriger vers la page de connexion
         }
     </script>
 </body>
