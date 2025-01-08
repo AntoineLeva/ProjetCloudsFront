@@ -3,99 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipelines Dashboard</title>
     <link rel="stylesheet" href="style.css">
-    <title>Pipeline</title>
 </head>
 <body>
     <header>
-        <div class="user-info">
-            <div id="user-details"></div>
+        <div id="user-details">
+            <p id="user-name">Bonjour, <span>Utilisateur</span></p>
+            <img id="user-picture" src="default-profile.png" alt="Profile Picture">
         </div>
-        <button class="logout-btn" id="logout-btn">Déconnexion</button>
+        <button id="logout-btn" class="logout-btn">Déconnexion</button>
     </header>
+
     <main>
-        <h1>Suivi des Pipelines</h1>
-        <ul id="pipeline-list">Chargement des pipelines...</ul>
-    </main>
-
-    <script>
-        // Récupérer le hash de l'URL
-        const hash = window.location.hash;
-        const params = new URLSearchParams(hash.substring(1)); // Retire le '#' du début
-
-        const accessToken = params.get('access_token');
-
-        if (accessToken) {
-            // Stocker le token dans sessionStorage
-            sessionStorage.setItem('access_token', accessToken);
-
-            // Utiliser l'API Google pour récupérer les infos utilisateur
-            fetch('https://www.googleapis.com/oauth2/v1/userinfo?access_token=' + accessToken, {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Bearer ' + accessToken,
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Afficher les informations utilisateur dans le header
-                const userDetails = `
-                    <div>
-                        <p><strong>${data.name}</strong><br>${data.email}</p>
-                    </div>
-                    <img src="${data.picture}" alt="Profile Picture" />
-                `;
-                document.getElementById('user-details').innerHTML = userDetails;
-            })
-            .catch(err => {
-                console.error('Erreur récuperation info utilisateur:', err);
-            });
-
-// Rendre quelque chose avec ce format 
-// const pipelines = [
-//     { name: "Pipeline A", status: "Running" },
-//     { name: "Pipeline B", status: "Failed" },
-//     { name: "Pipeline C", status: "Completed" }
-// ];
-// const pipelineList = document.getElementById('pipeline-list');
-// pipelines.forEach(pipeline => {
-//     const li = document.createElement('li');
-//     li.textContent = `Pipeline: ${pipeline.name}, Status: ${pipeline.status}`;
-//     pipelineList.appendChild(li);
-// });
-
-
-            // Charger les pipelines            
-            fetch('http://localhost:3000/api/pipelines', {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${accessToken}`
-                }
-            })
-            .then(response => response.json())
-            .then(pipelines => {
-                const pipelineList = document.getElementById('pipeline-list');
-                pipelineList.innerHTML = ''; // Clear loading message
-                pipelines.forEach(pipeline => {
-                    const li = document.createElement('li');
-                    li.textContent = `Pipeline: ${pipeline.name}, Status: ${pipeline.status}`;
-                    pipelineList.appendChild(li);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching pipelines:', error);
-                document.getElementById('pipeline-list').innerText = 'Erreur lors de la récupération des pipelines.';
-            });
-
-            // Gestion de la déconnexion
-            document.getElementById('logout-btn').addEventListener('click', () => {
-                sessionStorage.removeItem('access_token'); // Supprimer le token
-                window.location.href = '/index.html'; // Rediriger vers la page de connexion
-            });
-        } else {
-            alert('Token non trouvé. Veuillez vous reconnecter.');
-            window.location.href = '/index.html'; // Rediriger vers la page de connexion
-        }
-    </script>
+        <h2>Liste des Pipelines</h2>
+        <ul id="pipeline-list" class="pipeline-list">
+            <li>Chargement des pipelines...</li>
+        </ul>
+    
+        <h3>Ajouter un nouveau Pipeline</h3>
+        <form id="add-pipeline-form">
+            <label for="repo-url">URL du Repository Git :</label>
+            <input type="url" id="repo-url" placeholder="https://github.com/user/repo" required>    
+            <button type="submit">Ajouter Pipeline</button>
+        </form>
+    </main>    
+    
 </body>
+<script>
+    // Déclaration de pipelines au niveau global
+    let pipelines = [];
+
+    // Récupérer le hash de l'URL
+    const hash = window.location.hash;
+    const params = new URLSearchParams(hash.substring(1)); // Supprime le '#' du début
+    const accessToken = params.get('access_token');
+
+    if (accessToken) {
+        sessionStorage.setItem('access_token', accessToken);
+
+        fetch('https://www.googleapis.com/oauth2/v1/userinfo?access_token=' + accessToken, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + accessToken,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Stocker les informations utilisateur
+            sessionStorage.setItem('user_name', data.name);
+            sessionStorage.setItem('user_picture', data.picture);
+
+            // Mettre à jour l'interface utilisateur
+            document.getElementById('user-name').querySelector('span').textContent = data.name;
+            document.getElementById('user-picture').src = data.picture;
+
+            console.log('Utilisateur connecté:', data);
+        })
+        .catch(err => {
+            console.error('Erreur récupération info utilisateur:', err);
+        });
+    }
+
+    function loadUserInfo() {
+        const userName = document.getElementById("user-name").querySelector("span");
+        const userPicture = document.getElementById("user-picture");
+
+        // Si les informations utilisateur sont déjà dans sessionStorage
+        const storedName = sessionStorage.getItem('user_name');
+        const storedPicture = sessionStorage.getItem('user_picture');
+
+        if (storedName && storedPicture) {
+            userName.textContent = storedName;
+            userPicture.src = storedPicture;
+        } else {
+            // Afficher des informations par défaut
+            userName.textContent = "Utilisateur";
+            userPicture.src = "https://via.placeholder.com/50";
+        }
+    }
+
+    // Fonction pour rendre les pipelines dans la liste
+    function renderPipelines() {
+        const pipelineList = document.getElementById("pipeline-list");
+        pipelineList.innerHTML = ""; // Clear loading message
+
+        pipelines.forEach(pipeline => {
+            const li = document.createElement("li");
+            const statusColor = 
+                pipeline.status === "Running" ? "green" : 
+                pipeline.status === "Failed" ? "red" : 
+                "blue";
+
+            li.innerHTML = `
+                <span>${pipeline.name} (<a href="${pipeline.repo}" target="_blank">Repo</a>)</span>
+                <span style="color: ${statusColor};">${pipeline.status}</span>
+                <button id="execute-btn">Exécuter</button>
+            `;
+            pipelineList.appendChild(li);
+        });
+    }
+
+    // Fonction pour extraire le nom du repository depuis l'URL
+    function extractRepoName(url) {
+        const match = url.match(/\/([^\/]+)\/?$/); // Recherche le dernier segment de l'URL
+        return match ? match[1] : "Repository inconnu";
+    }
+
+    // Fonction pour ajouter un nouveau pipeline
+    function addPipeline(event) {
+        event.preventDefault(); // Empêcher le rechargement de la page
+
+        const repoUrl = document.getElementById("repo-url").value;
+
+        if (repoUrl) {
+            // Extraire le nom du repository
+            const repoName = extractRepoName(repoUrl);
+
+            // Ajouter le nouveau pipeline avec le statut par défaut "Pending"
+            pipelines.push({ name: repoName, status: "Pending", repo: repoUrl });
+
+            // Réinitialiser le formulaire
+            document.getElementById("add-pipeline-form").reset();
+
+            // Re-render la liste des pipelines
+            renderPipelines();
+        } else {
+            alert("Veuillez entrer une URL valide !");
+        }
+    }
+
+    // Charger les pipelines lors du chargement de la page
+    window.addEventListener("DOMContentLoaded", () => {
+        loadUserInfo();
+        renderPipelines();
+
+        // Écouter l'ajout d'un pipeline
+        document.getElementById("add-pipeline-form").addEventListener("submit", addPipeline);
+    });
+</script>
 </html>
