@@ -65,6 +65,41 @@
         });
     }
 
+    
+    const backendUrl = "http://127.0.0.1:5000/deploy"; // URL de votre back-end
+
+    // Fonction pour démarrer la pipeline
+    function startPipeline(repoUrl, targetDir) {
+        console.log("test");
+
+        // Lancer la requête POST pour démarrer le processus de déploiement
+        fetch('http://127.0.0.1:5000/deploy', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ repoUrl, targetDir })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Démarrage du déploiement", data);
+        })
+        .catch(error => console.error("Erreur lors du démarrage du déploiement:", error));
+    }
+
+    // Utiliser EventSource pour recevoir des messages du serveur en temps réel
+    const eventSource = new EventSource('http://127.0.0.1:5000/deploy');
+
+    eventSource.onmessage = function(event) {
+        const logElement = document.getElementById("output-log");
+        logElement.textContent += event.data + "\n";  // Affiche les messages reçus
+        logElement.scrollTop = logElement.scrollHeight;  // Fait défiler vers le bas
+    };
+
+    eventSource.onerror = function() {
+        console.error("Erreur de connexion avec le serveur SSE");
+    };
+
     function loadUserInfo() {
         const userName = document.getElementById("user-name").querySelector("span");
         const userPicture = document.getElementById("user-picture");
@@ -101,6 +136,7 @@
                 <button id="execute-btn">Exécuter</button>
             `;
             pipelineList.appendChild(li);
+            document.getElementById("execute-btn").addEventListener("click", startPipeline);
         });
     }
 
