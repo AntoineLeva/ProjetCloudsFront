@@ -66,14 +66,14 @@
     }
 
     
-    const backendUrl = "http://127.0.0.1:5000/deploy"; // URL de votre back-end
+    const backendUrl = "http://127.0.0.1:5001/deploy"; // URL de votre back-end
 
     // Fonction pour démarrer la pipeline
     function startPipeline(repoUrl, targetDir) {
         console.log("test");
 
         // Lancer la requête POST pour démarrer le processus de déploiement
-        fetch('http://127.0.0.1:5000/deploy', {
+        fetch(backendUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -88,7 +88,7 @@
     }
 
     // Utiliser EventSource pour recevoir des messages du serveur en temps réel
-    const eventSource = new EventSource('http://127.0.0.1:5000/deploy');
+    const eventSource = new EventSource(backendUrl);
 
     eventSource.onmessage = function(event) {
         const logElement = document.getElementById("output-log");
