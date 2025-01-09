@@ -78,3 +78,23 @@ footer {
     border-radius: 5px;
     cursor: pointer;
 }
+#add-pipeline-form {
+    display: none; /* Masquer par défaut */
+}
+
+.logout-btn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.start-pipeline-btn {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-left: 10px;
+    cursor: pointer;
+}

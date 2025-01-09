@@ -50,15 +50,23 @@
         })
         .then(response => response.json())
         .then(data => {
-            // Stocker les informations utilisateur
-            sessionStorage.setItem('user_name', data.name);
-            sessionStorage.setItem('user_picture', data.picture);
+            // Récupérer l'email utilisateur
+            const email = data.email;
 
-            // Mettre à jour l'interface utilisateur
+            // Déterminer le rôle de l'utilisateur
+            const userRole = getRole(email);
+
+            // Stocker le rôle dans sessionStorage pour usage futur
+            sessionStorage.setItem("user_role", userRole);
+
+            // Adapter l'interface utilisateur
+            adaptUIBasedOnRole(userRole);
+
+            // Afficher les détails de l'utilisateur
             document.getElementById('user-name').querySelector('span').textContent = data.name;
             document.getElementById('user-picture').src = data.picture;
 
-            console.log('Utilisateur connecté:', data);
+            console.log(`Utilisateur connecté : ${data.name}, Rôle : ${userRole}`);
         })
         .catch(err => {
             console.error('Erreur récupération info utilisateur:', err);
@@ -68,7 +76,7 @@
     // Fonction pour effectuer une requête GET
     function getPipelineStatus() {
         // URL de votre API (le backend Flask)
-        const url = 'http://localhost:5001/get-pipeline-status';
+        const url = 'http://localhost:5000/get-pipeline-status';
 
         // Données à envoyer dans le corps de la requête (si nécessaire)
         const data = {
@@ -98,10 +106,10 @@
             });
     }
 
-    const backendUrl = "http://127.0.0.1:5001"; // URL pour démarrer le processus
+    const backendUrl = "http://127.0.0.1:5000"; // URL pour démarrer le processus
     // Fonction pour démarrer la pipeline
     function startPipeline(repoUrl, targetDir) {
-        const url = 'http://localhost:5001/start-pipeline';  
+        const url = 'http://localhost:5000/start-pipeline';  
 
         // Données à envoyer dans le corps de la requête (si nécessaire)
         const data = {
@@ -210,6 +218,40 @@
 
         // Écouter l'ajout d'un pipeline
         document.getElementById("add-pipeline-form").addEventListener("submit", addPipeline);
+    });
+
+
+    function getRole(email) {
+        const roleMapping = {
+            // soit "admin" soit "viewer" -> si aucun alors viewer
+            "ibrahimbbk05@gmail.com": "admin", 
+            "calesse.guillaume@gmail.com": "admin",
+            "antoine.leva.59290@gmail.com": "admin",
+            "thomas.vasseur@etu.imt-nord-europe.fr": "viewer"
+        };
+        return roleMapping[email] || "viewer"; // Par défaut : spectateur
+    }
+    function adaptUIBasedOnRole(role) {
+        const addPipelineForm = document.getElementById("add-pipeline-form");
+        const pipelineList = document.getElementById("pipeline-list");
+
+        if (role === "admin") {
+            // Admin peut ajouter des pipelines
+            addPipelineForm.style.display = "block";
+        } else if (role === "viewer") {
+            // Spectateur ne peut pas ajouter des pipelines
+            addPipelineForm.style.display = "none";
+        }
+    }
+    document.getElementById("logout-btn").addEventListener("click", () => {
+        // Effacer les données de sessionStorage
+        sessionStorage.removeItem("access_token");
+        sessionStorage.removeItem("user_name");
+        sessionStorage.removeItem("user_picture");
+        sessionStorage.removeItem("user_role");
+
+        // Rediriger vers la page de connexion
+        window.location.href = "index.html";
     });
 </script>
 </html>
