@@ -65,40 +65,74 @@
         });
     }
 
-    
-    const backendUrl = "http://127.0.0.1:5001/deploy"; // URL de votre back-end
+    // Fonction pour effectuer une requête GET
+    function getPipelineStatus() {
+        // URL de votre API (le backend Flask)
+        const url = 'http://localhost:5001/get-pipeline-status';
 
-    // Fonction pour démarrer la pipeline
-    function startPipeline(repoUrl, targetDir) {
-        console.log("test");
+        // Données à envoyer dans le corps de la requête (si nécessaire)
+        const data = {
+            // Vous pouvez envoyer des données comme l'URL du repo ou d'autres paramètres si nécessaire
+            repo_url: 'https://github.com/AntoineLeva/ProjetClouds.git'
+        };
 
-        // Lancer la requête POST pour démarrer le processus de déploiement
-        fetch(backendUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ repoUrl, targetDir })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log("Démarrage du déploiement", data);
-        })
-        .catch(error => console.error("Erreur lors du démarrage du déploiement:", error));
+        // Utilisation de fetch pour envoyer une requête GET
+        fetch(url, {
+                method: 'POST',  // Méthode POST
+                headers: {
+                    'Content-Type': 'application/json',  // Indique que l'on envoie du JSON
+                },
+                body: JSON.stringify(data),  // Convertit l'objet JavaScript en JSON
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur lors de l\'appel de l\'API');
+                }
+                return response.json();  // Récupère la réponse JSON
+            })
+            .then(data => {
+                console.log(data);
+            })
+            .catch(err => {
+                console.log(err.message);
+            });
     }
 
-    // Utiliser EventSource pour recevoir des messages du serveur en temps réel
-    const eventSource = new EventSource(backendUrl);
+    const backendUrl = "http://127.0.0.1:5001"; // URL pour démarrer le processus
+    // Fonction pour démarrer la pipeline
+    function startPipeline(repoUrl, targetDir) {
+        const url = 'http://localhost:5001/start-pipeline';  
 
-    eventSource.onmessage = function(event) {
-        const logElement = document.getElementById("output-log");
-        logElement.textContent += event.data + "\n";  // Affiche les messages reçus
-        logElement.scrollTop = logElement.scrollHeight;  // Fait défiler vers le bas
-    };
+        // Données à envoyer dans le corps de la requête (si nécessaire)
+        const data = {
+            // Vous pouvez envoyer des données comme l'URL du repo ou d'autres paramètres si nécessaire
+            repo_url: 'https://github.com/AntoineLeva/ProjetClouds.git'
+        };
 
-    eventSource.onerror = function() {
-        console.error("Erreur de connexion avec le serveur SSE");
-    };
+        // Utilisation de fetch pour envoyer une requête POST
+        fetch(url, {
+            method: 'POST',  // Méthode POST
+            headers: {
+                'Content-Type': 'application/json',  // Indique que l'on envoie du JSON
+            },
+            body: JSON.stringify(data),  // Convertit l'objet JavaScript en JSON
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur lors de l\'appel de l\'API');
+            }
+            
+            // Appeler la fonction toutes les 5 secondes (5000ms)
+            setInterval(getPipelineStatus, 2000);
+            return response.json();  // Récupère la réponse JSON
+        })
+        .then(data => {
+            console.log(data);
+        })
+        .catch(err => {
+            console.log(err);
+        });
+    }
 
     function loadUserInfo() {
         const userName = document.getElementById("user-name").querySelector("span");
