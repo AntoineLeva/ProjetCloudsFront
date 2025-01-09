@@ -73,10 +73,28 @@
         });
     }
 
+    function loadUserInfo() {
+        const userName = document.getElementById("user-name").querySelector("span");
+        const userPicture = document.getElementById("user-picture");
+
+        // Si les informations utilisateur sont déjà dans sessionStorage
+        const storedName = sessionStorage.getItem('user_name');
+        const storedPicture = sessionStorage.getItem('user_picture');
+
+        if (storedName && storedPicture) {
+            userName.textContent = storedName;
+            userPicture.src = storedPicture;
+        } else {
+            // Afficher des informations par défaut
+            userName.textContent = "Utilisateur";
+            userPicture.src = "https://via.placeholder.com/50";
+        }
+    }
+
     // Fonction pour effectuer une requête GET
     function getPipelineStatus() {
         // URL de votre API (le backend Flask)
-        const url = 'http://localhost:5000/get-pipeline-status';
+        const url = 'http://localhost:5001/get-all-pipelines';
 
         // Données à envoyer dans le corps de la requête (si nécessaire)
         const data = {
@@ -99,17 +117,18 @@
                 return response.json();  // Récupère la réponse JSON
             })
             .then(data => {
-                console.log(data);
+                pipelines = data.pipelines;
+                renderPipelines();
             })
             .catch(err => {
                 console.log(err.message);
             });
     }
 
-    const backendUrl = "http://127.0.0.1:5000"; // URL pour démarrer le processus
+    const backendUrl = "http://127.0.0.1:5001"; // URL pour démarrer le processus
     // Fonction pour démarrer la pipeline
     function startPipeline(repoUrl, targetDir) {
-        const url = 'http://localhost:5000/start-pipeline';  
+        const url = backendUrl+'/start-pipeline';  
 
         // Données à envoyer dans le corps de la requête (si nécessaire)
         const data = {
@@ -129,9 +148,6 @@
             if (!response.ok) {
                 throw new Error('Erreur lors de l\'appel de l\'API');
             }
-            
-            // Appeler la fonction toutes les 5 secondes (5000ms)
-            setInterval(getPipelineStatus, 2000);
             return response.json();  // Récupère la réponse JSON
         })
         .then(data => {
@@ -142,22 +158,11 @@
         });
     }
 
-    function loadUserInfo() {
-        const userName = document.getElementById("user-name").querySelector("span");
-        const userPicture = document.getElementById("user-picture");
+    function getRepoNameFromUrl(url) {
+        if (!url) return null;
 
-        // Si les informations utilisateur sont déjà dans sessionStorage
-        const storedName = sessionStorage.getItem('user_name');
-        const storedPicture = sessionStorage.getItem('user_picture');
-
-        if (storedName && storedPicture) {
-            userName.textContent = storedName;
-            userPicture.src = storedPicture;
-        } else {
-            // Afficher des informations par défaut
-            userName.textContent = "Utilisateur";
-            userPicture.src = "https://via.placeholder.com/50";
-        }
+        const match = url.match(/\/([^\/]+)\.git$/);
+        return match ? match[1] : null;
     }
 
     // Fonction pour rendre les pipelines dans la liste
@@ -165,21 +170,64 @@
         const pipelineList = document.getElementById("pipeline-list");
         pipelineList.innerHTML = ""; // Clear loading message
 
-        pipelines.forEach(pipeline => {
+        pipelines.forEach((pipeline) => {
             const li = document.createElement("li");
+
+            const repoName = getRepoNameFromUrl(pipeline.datas.repo_url);
+
+            let isPending = false;
+            let isFailed = false;
+
+            lastStep = "- - -";
+            lastStatus = "";
+
+            if (pipeline.last_log) {
+                const logs = pipeline.last_log.log;
+
+                for (step in logs) {
+                    if (logs[step] == "failed") {
+                        lastStep = step;
+                        lastStatus = "failed" 
+                        break;
+                    }
+                    if (logs[step] == "pending") {
+                        lastStatus = "pending" 
+                        lastStep = step;
+                        break;
+                    }
+                    lastStep = "Pipeline validée";
+                    lastStatus = "success"
+                }
+            }
+
+            const status = 
+                lastStatus == "failed" ? "En erreur" : 
+                lastStatus == "pending" ? "En cours" : 
+                lastStatus == "success" ? "Succes" : 
+                "- - -";
+
             const statusColor = 
-                pipeline.status === "Running" ? "green" : 
-                pipeline.status === "Failed" ? "red" : 
-                "blue";
+                lastStatus == "failed" ? "red" : 
+                lastStatus == "pending" ? "blue" : 
+                lastStatus == "success" ? "green" : 
+                "grey";
+
+            // const statusColor = 
+            //     pipeline.status === "Running" ? "green" : 
+            //     pipeline.status === "Failed" ? "red" : 
+            //     "blue";
 
             li.innerHTML = `
-                <span>${pipeline.name} (<a href="${pipeline.repo}" target="_blank">Repo</a>)</span>
-                <span style="color: ${statusColor};">${pipeline.status}</span>
+                <span>${repoName} (<a href="${pipeline.datas.repo_url}" target="_blank">Lien</a>)</span>
+                <span>date de création : ${pipeline.datas.creation_date} </span>
+                <span>dernière utilisation : ${pipeline.last_log ? pipeline.last_log.date : "X"} </span>
+                <span style="color: ${statusColor};">${status}</span>
+                <span style="color: ${statusColor};">${lastStep}</span>
                 <button id="execute-btn">Exécuter</button>
             `;
             pipelineList.appendChild(li);
             document.getElementById("execute-btn").addEventListener("click", startPipeline);
-        });
+        })
     }
 
     // Fonction pour extraire le nom du repository depuis l'URL
@@ -199,13 +247,40 @@
             const repoName = extractRepoName(repoUrl);
 
             // Ajouter le nouveau pipeline avec le statut par défaut "Pending"
-            pipelines.push({ name: repoName, status: "Pending", repo: repoUrl });
+            // pipelines.push({ name: repoName, status: "Pending", repo: repoUrl });
 
             // Réinitialiser le formulaire
             document.getElementById("add-pipeline-form").reset();
 
-            // Re-render la liste des pipelines
-            renderPipelines();
+            const url = backendUrl+'/create-pipeline'; 
+
+            // Données à envoyer dans le corps de la requête (si nécessaire)
+            const data = {
+                // Vous pouvez envoyer des données comme l'URL du repo ou d'autres paramètres si nécessaire
+                repo_url: repoUrl
+            };
+
+            // Utilisation de fetch pour envoyer une requête POST
+            fetch(url, {
+                method: 'POST',  // Méthode POST
+                headers: {
+                    'Content-Type': 'application/json',  // Indique que l'on envoie du JSON
+                },
+                body: JSON.stringify(data),  // Convertit l'objet JavaScript en JSON
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur lors de l\'appel de l\'API');
+                }
+                
+                return response.json();  // Récupère la réponse JSON
+            })
+            .then(data => {
+                console.log(data);
+            })
+            .catch(err => {
+                console.log(err);
+            });
         } else {
             alert("Veuillez entrer une URL valide !");
         }
@@ -214,7 +289,7 @@
     // Charger les pipelines lors du chargement de la page
     window.addEventListener("DOMContentLoaded", () => {
         loadUserInfo();
-        renderPipelines();
+        setInterval(getPipelineStatus, 500);
 
         // Écouter l'ajout d'un pipeline
         document.getElementById("add-pipeline-form").addEventListener("submit", addPipeline);
