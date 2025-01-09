@@ -1,0 +1,73 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-container {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    padding: 20px 40px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    color: #333333;
+    max-width: 400px;
+    width: 100%;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #333333;
+}
+
+p {
+    font-size: 1rem;
+    margin-bottom: 20px;
+    color: #555555;
+}
+
+.oauth-button {
+    display: inline-block;
+    background: #4285f4;
+    color: #ffffff;
+    font-size: 1rem;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.oauth-button:hover {
+    background: #3367d6;
+}
+
+.oauth-button:active {
+    background: #2a56c6;
+}
+
+.btn {
+    background: #ff5252;
+    color: white;
+    font-size: 1rem;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+.btn:hover {
+    background: #e04848;
+}
+
+.btn:active {
+    background: #c63d3d;
+}
