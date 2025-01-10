@@ -1,0 +1,11 @@
+{
+    "datas": {
+        "creation_date": "2025-01-10 21:01:32",
+        "vm_ip": "192.168.66.192",
+        "user": "imt",
+        "password": "admin",
+        "repo_url": "https://github.com/AntoineLeva/ProjetClouds",
+        "last_run_date": ""
+    },
+    "logs": {}
+}

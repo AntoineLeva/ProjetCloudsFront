@@ -31,7 +31,6 @@
     
 </body>
 <script>
-    // Déclaration de pipelines au niveau global
     let pipelines = [];
 
     // Récupérer le hash de l'URL
@@ -50,19 +49,14 @@
         })
         .then(response => response.json())
         .then(data => {
-            // Récupérer l'email utilisateur
             const email = data.email;
 
-            // Déterminer le rôle de l'utilisateur
             const userRole = getRole(email);
 
-            // Stocker le rôle dans sessionStorage pour usage futur
             sessionStorage.setItem("user_role", userRole);
 
-            // Adapter l'interface utilisateur
             adaptUIBasedOnRole(userRole);
 
-            // Afficher les détails de l'utilisateur
             document.getElementById('user-name').querySelector('span').textContent = data.name;
             document.getElementById('user-picture').src = data.picture;
 
@@ -77,7 +71,6 @@
         const userName = document.getElementById("user-name").querySelector("span");
         const userPicture = document.getElementById("user-picture");
 
-        // Si les informations utilisateur sont déjà dans sessionStorage
         const storedName = sessionStorage.getItem('user_name');
         const storedPicture = sessionStorage.getItem('user_picture');
 
@@ -85,7 +78,6 @@
             userName.textContent = storedName;
             userPicture.src = storedPicture;
         } else {
-            // Afficher des informations par défaut
             userName.textContent = "Utilisateur";
             userPicture.src = "https://via.placeholder.com/50";
         }
@@ -93,10 +85,8 @@
 
     // Fonction pour effectuer une requête GET
     function getPipelineStatus() {
-        // URL de votre API (le backend Flask)
         const url = 'http://localhost:5001/get-all-pipelines';
 
-        // Données à envoyer dans le corps de la requête (si nécessaire)
         const data = {
             // Vous pouvez envoyer des données comme l'URL du repo ou d'autres paramètres si nécessaire
             repo_url: 'https://github.com/AntoineLeva/ProjetClouds.git'
@@ -104,9 +94,9 @@
 
         // Utilisation de fetch pour envoyer une requête GET
         fetch(url, {
-                method: 'POST',  // Méthode POST
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',  // Indique que l'on envoie du JSON
+                    'Content-Type': 'application/json',  // précise envoie JSON
                 },
                 body: JSON.stringify(data),  // Convertit l'objet JavaScript en JSON
             })
@@ -114,7 +104,7 @@
                 if (!response.ok) {
                     throw new Error('Erreur lors de l\'appel de l\'API');
                 }
-                return response.json();  // Récupère la réponse JSON
+                return response.json();  // récupère réponse JSON
             })
             .then(data => {
                 pipelines = data.pipelines;
@@ -126,29 +116,27 @@
     }
 
     const backendUrl = "http://127.0.0.1:5001"; // URL pour démarrer le processus
-    // Fonction pour démarrer la pipeline
+
     function startPipeline(repoUrl, targetDir) {
         const url = backendUrl+'/start-pipeline';  
 
-        // Données à envoyer dans le corps de la requête (si nécessaire)
         const data = {
-            // Vous pouvez envoyer des données comme l'URL du repo ou d'autres paramètres si nécessaire
             repo_url: 'https://github.com/AntoineLeva/ProjetClouds.git'
         };
 
         // Utilisation de fetch pour envoyer une requête POST
         fetch(url, {
-            method: 'POST',  // Méthode POST
+            method: 'POST',
             headers: {
-                'Content-Type': 'application/json',  // Indique que l'on envoie du JSON
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),  // Convertit l'objet JavaScript en JSON
+            body: JSON.stringify(data),
         })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Erreur lors de l\'appel de l\'API');
             }
-            return response.json();  // Récupère la réponse JSON
+            return response.json();
         })
         .then(data => {
             console.log(data);
@@ -165,7 +153,6 @@
         return match ? match[1] : null;
     }
 
-    // Fonction pour rendre les pipelines dans la liste
     function renderPipelines() {
         const pipelineList = document.getElementById("pipeline-list");
         pipelineList.innerHTML = ""; // Clear loading message
@@ -214,11 +201,6 @@
                 lastStatus == "success" ? "green" : 
                 "grey";
 
-            // const statusColor = 
-            //     pipeline.status === "Running" ? "green" : 
-            //     pipeline.status === "Failed" ? "red" : 
-            //     "blue";
-
             const pipeline_id = extractRepoInfo(pipeline.datas.repo_url);
 
             li.innerHTML = `
@@ -243,14 +225,13 @@
         // Supprime les "/" de fin et divise l'URL en parties
         const repoParts = repoUrl.replace(/\/+$/, '').split('/');
         
-        const user = repoParts[repoParts.length - 2]; // L'utilisateur est l'avant-dernier élément
-        const repoName = repoParts[repoParts.length - 1].replace('.git', ''); // Le nom du dépôt sans l'extension .git
+        const user = repoParts[repoParts.length - 2];
+        const repoName = repoParts[repoParts.length - 1].replace('.git', '');
         
         return `${user}_${repoName}`;
     }
 
 
-    // Fonction pour extraire le nom du repository depuis l'URL
     function extractRepoName(url) {
         const match = url.match(/\/([^\/]+)\/?$/); // Recherche le dernier segment de l'URL
         return match ? match[1] : "Repository inconnu";
@@ -265,9 +246,6 @@
         if (repoUrl) {
             // Extraire le nom du repository
             const repoName = extractRepoName(repoUrl);
-
-            // Ajouter le nouveau pipeline avec le statut par défaut "Pending"
-            // pipelines.push({ name: repoName, status: "Pending", repo: repoUrl });
 
             // Réinitialiser le formulaire
             document.getElementById("add-pipeline-form").reset();
@@ -318,7 +296,7 @@
 
     function getRole(email) {
         const roleMapping = {
-            // soit "admin" soit "viewer" -> si aucun alors viewer
+
             "ibrahimbbk05@gmail.com": "admin", 
             "calesse.guillaume@gmail.com": "admin",
             "antoine.leva.59290@gmail.com": "admin",

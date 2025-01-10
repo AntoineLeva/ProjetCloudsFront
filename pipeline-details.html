@@ -9,12 +9,10 @@
 <body>
     <header>
         <h1>Détails de la Pipeline</h1>
-        <!-- <a href="callback.html">Retour à la liste</a> -->
         <button onclick="history.back();" class="logout-btn">Revenir</button>
     </header>
     <main>
         <div id="logs-container">
-            <!-- Les logs seront affichés ici -->
         </div>
     </main>
     <script>
@@ -38,14 +36,12 @@
                         timestampElement.textContent = `Logs du ${timestamp}`;
                         container.appendChild(timestampElement);
 
-                        // Ajouter une liste des étapes pour ce timestamp
                         const ul = document.createElement("ul");
 
                         for (const [step, status] of Object.entries(steps)) {
                             const li = document.createElement("li");
                             li.textContent = `${step}: ${status}`;
                             
-                            // Ajouter une classe en fonction du statut
                             li.className = `status-${status}`; // success, pending, etc.
                             ul.appendChild(li);
                         }

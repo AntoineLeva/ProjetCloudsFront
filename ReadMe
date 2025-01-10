@@ -1,0 +1,11 @@
+Bonjour Monsieur
+voila le front de notre application
+
+Vous devez lancer le appV6.py pour lancer le back de notre application
+Ensuite nous avons utiliser Live Server sur Visual Studio Code pour lancer notre front.
+Installer cette extension et une fois installé, ouvrez le index.html et cliquez tout en bas à droite sur "Go Live" ca vous redirigera sur le localhost:5500
+
+Pour lancer sonar, vous devez le lancer à part.
+Il faut lancer votre projet modifié (adapté par nos soins): https://github.com/AntoineLeva/ProjetClouds
+déplacez vous dans le dossier "sonar" et lancez docker-compose up -d ca construira les containers.
+

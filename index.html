@@ -16,7 +16,7 @@
 
     <script>
         const clientId = '394694678967-cdv2lql3p1nlh815btkb4tl3inf4iv48.apps.googleusercontent.com';
-        const redirectUri = 'http://localhost:5500/callback.html';//'http://localhost:8080/callback.html'; // Ton URI de redirection
+        const redirectUri = 'http://localhost:5500/callback.html';//'http://localhost:8080/callback.html';
         const oauthEndpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
 
         // Rediriger vers l'URL d'autorisation OAuth2
@@ -31,10 +31,8 @@
         const token = hashParams.get('access_token');
 
         if (token) {
-            // Stocker le token pour une utilisation future
             sessionStorage.setItem('access_token', token);
 
-            // Récupérer les informations de l'utilisateur depuis l'API Google
             fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
                 method: 'GET',
                 headers: {
