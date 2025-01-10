@@ -173,6 +173,8 @@
         pipelines.forEach((pipeline) => {
             const li = document.createElement("li");
 
+            console.log(pipeline);
+
             const repoName = getRepoNameFromUrl(pipeline.datas.repo_url);
 
             let isPending = false;
@@ -217,10 +219,17 @@
             //     pipeline.status === "Failed" ? "red" : 
             //     "blue";
 
+            const pipeline_id = extractRepoInfo(pipeline.datas.repo_url);
+
             li.innerHTML = `
-                <span>${repoName} (<a href="${pipeline.datas.repo_url}" target="_blank">Lien</a>)</span>
-                <span>date de création : ${pipeline.datas.creation_date} </span>
-                <span>dernière utilisation : ${pipeline.last_log ? pipeline.last_log.date : "X"} </span>
+                <span>
+                    <a href="pipeline-details.html?id=${pipeline_id}">${repoName}</a>
+                </span>
+                <span>
+                    (<a href="${pipeline.datas.repo_url}" target="_blank">Lien</a>)
+                </span>
+                <span>date de création : ${pipeline.datas.creation_date}</span>
+                <span>dernière utilisation : ${pipeline.last_log ? pipeline.last_log.date : "X"}</span>
                 <span style="color: ${statusColor};">${status}</span>
                 <span style="color: ${statusColor};">${lastStep}</span>
                 <button id="execute-btn">Exécuter</button>
@@ -229,6 +238,17 @@
             document.getElementById("execute-btn").addEventListener("click", startPipeline);
         })
     }
+
+    function extractRepoInfo(repoUrl) {
+        // Supprime les "/" de fin et divise l'URL en parties
+        const repoParts = repoUrl.replace(/\/+$/, '').split('/');
+        
+        const user = repoParts[repoParts.length - 2]; // L'utilisateur est l'avant-dernier élément
+        const repoName = repoParts[repoParts.length - 1].replace('.git', ''); // Le nom du dépôt sans l'extension .git
+        
+        return `${user}_${repoName}`;
+    }
+
 
     // Fonction pour extraire le nom du repository depuis l'URL
     function extractRepoName(url) {
@@ -289,7 +309,7 @@
     // Charger les pipelines lors du chargement de la page
     window.addEventListener("DOMContentLoaded", () => {
         loadUserInfo();
-        setInterval(getPipelineStatus, 500);
+        setInterval(getPipelineStatus, 2000);
 
         // Écouter l'ajout d'un pipeline
         document.getElementById("add-pipeline-form").addEventListener("submit", addPipeline);

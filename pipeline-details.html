@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails de la Pipeline</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Détails de la Pipeline</h1>
+        <!-- <a href="callback.html">Retour à la liste</a> -->
+        <button onclick="history.back();" class="logout-btn">Revenir</button>
+    </header>
+    <main>
+        <div id="logs-container">
+            <!-- Les logs seront affichés ici -->
+        </div>
+    </main>
+    <script>
+        const backendUrl = "http://127.0.0.1:5001";
+
+        // Récupérer l'ID de la pipeline depuis l'URL
+        const params = new URLSearchParams(window.location.search);
+        const pipelineId = params.get("id");
+
+        if (pipelineId) {
+            // Appel à l'API pour récupérer les détails de la pipeline
+            fetch(`${backendUrl}/get-pipeline-details?id=${pipelineId}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+
+                    const container = document.getElementById("logs-container");
+                    
+                    for (const [timestamp, steps] of Object.entries(data)) {
+                        const timestampElement = document.createElement("h3");
+                        timestampElement.textContent = `Logs du ${timestamp}`;
+                        container.appendChild(timestampElement);
+
+                        // Ajouter une liste des étapes pour ce timestamp
+                        const ul = document.createElement("ul");
+
+                        for (const [step, status] of Object.entries(steps)) {
+                            const li = document.createElement("li");
+                            li.textContent = `${step}: ${status}`;
+                            
+                            // Ajouter une classe en fonction du statut
+                            li.className = `status-${status}`; // success, pending, etc.
+                            ul.appendChild(li);
+                        }
+
+                        container.appendChild(ul);
+                    }
+                })
+                .catch(err => {
+                    console.error("Erreur lors du chargement des détails de la pipeline :", err);
+                    document.getElementById("pipeline-details").textContent = "Erreur lors du chargement des données.";
+                });
+        } else {
+            document.getElementById("pipeline-details").textContent = "Aucune pipeline sélectionnée.";
+        }
+    </script>
+</body>
+</html>
